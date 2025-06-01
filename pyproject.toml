@@ -7,8 +7,7 @@ build-backend = "setuptools.build_meta"
 course_demo = ["*.json"]
 
 [project]
-name = "final-python-course-demo"
-authors = [{ name = "Eric Riddoch", email = "some-email@gmail.com" }]
+name = "final-python-course-demo-test2"
 description = "My package description"
 readme = "README.md"
 requires-python = ">=3.7"
@@ -22,7 +21,7 @@ dynamic = ["version"]
 test = ["pytest", "pytest-cov"]
 release = ["build", "twine"]
 static-code-qa = ["pre-commit"]
-dev = ["final-python-course-demo[test,release,static-code-qa]"]
+dev = ["final-python-course-demo-test2[test,release,static-code-qa]"]
 
 # docs: https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#dynamic-metadata
 [tool.setuptools.dynamic]
