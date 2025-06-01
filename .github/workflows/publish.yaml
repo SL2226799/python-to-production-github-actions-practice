@@ -18,13 +18,36 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: 3.8
-      - name: Publish to TestPyPI
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt' && '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Tag with the release version
         run: |
-          bash run.sh install
-          bash run.sh build
-          bash run.sh publish:test
+          git tag $(cat version.txt)
+      - name: Install Libraries
+        run: |
+          bash -x run.sh install:default
+          bash -x run.sh install
+      - name: Lint, Format
+        run: | 
+          bash -x run.sh lint
+        env:
+          SKIP: 
+      - name: Build Python Package
+        run: |
+          bash -x run.sh build
+      - name: Publish to TestPyPI
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          bash -x run.sh publish:test
         env:
           TEST_PYPI_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
+      - name: Push Tag
+        run: |
+          git push origin --tags
 
   # https://docs.github.com/en/actions/learn-github-actions/contexts#example-printing-context-information-to-the-log
   dump-contexts-to-log:

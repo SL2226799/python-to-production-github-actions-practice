@@ -15,6 +15,10 @@ function try-load-dotenv {
     done < <(grep -v '^#' "$THIS_DIR/.env" | grep -v '^$')
 }
 
+function install:default {
+    python -m pip install requirements.txt
+}
+
 function install {
     python -m pip install --upgrade pip
     python -m pip install --editable "$THIS_DIR/[dev]"
@@ -22,6 +26,10 @@ function install {
 
 function lint {
     pre-commit run --all-files
+}
+
+function lint:ci {
+    SKIP=no-commit-to-branch pre-commit run --all-files
 }
 
 function build {
