@@ -16,7 +16,7 @@ function try-load-dotenv {
 }
 
 function install:default {
-    python -m pip install requirements.txt
+    python -m pip install -r requirements.txt
 }
 
 function install {
