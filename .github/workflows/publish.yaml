@@ -1,11 +1,52 @@
-name: Manual Trigger Test
+name: Build, Test, and Publish
 
 on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
+
 jobs:
-  test:
+  build-test-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Say hello
-        run: echo "Hello from workflow_dispatch!"
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.8
+      - name: Publish to TestPyPI
+        run: |
+          bash run.sh install
+          bash run.sh build
+          bash run.sh publish:test
+        env:
+          TEST_PYPI_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
+
+  # https://docs.github.com/en/actions/learn-github-actions/contexts#example-printing-context-information-to-the-log
+  dump-contexts-to-log:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump GitHub context
+        id: github_context_step
+        run: echo '${{ toJSON(github) }}'
+      - name: Dump job context
+        run: echo '${{ toJSON(job) }}'
+      - name: Dump steps context
+        run: echo '${{ toJSON(steps) }}'
+      - name: Dump runner context
+        run: echo '${{ toJSON(runner) }}'
+      - name: Dump strategy context
+        run: echo '${{ toJSON(strategy) }}'
+      - name: Dump matrix context
+        run: echo '${{ toJSON(matrix) }}'
+      - name: Dump secrets
+        run: echo '${{ toJSON(secrets) }}'
+      - name: Dump vars
+        run: echo '${{ toJSON(vars) }}'
+
+
+     
