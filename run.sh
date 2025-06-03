@@ -86,6 +86,69 @@ function release:prod {
     publish:prod
 }
 
+function test {
+    if ["$#" -eq 0]; then
+        python -m pytest "$THIS_DIR/tests/" --cov "THIS_DIR/final-python-course-demo"
+    else
+        python -m pytest "$@"
+    fi
+}
+
+function test:quick {
+    rm -r "$THIS_DIR/test_reports/"
+    PYTEST_EXIT_STATUS=0 
+    python -m pytest -m "not slow" "$THIS_DIR/tests" \
+    --cov "$THIS_DIR/src" \
+    --cov-report "html" \
+    --cov-report "term" \
+    --cov-fail-under 95 || ((PYTEST_EXIT_STATUS+=$?))
+    mv htmlcov "$THIS_DIR/test_reports/"
+}
+
+function test:wheel-locally {
+    deactivate || true
+    rm -rf test-env || true
+    python -m venv test-env
+    source test-env/bin/activate
+    clean || true
+    pip install build
+    build
+    pip install ./dist/*.whl pytest pytest-cov
+    test:ci
+    deactivate || true
+}
+
+# execute tests against the installed package; assumes the wheel is already installed
+function test:ci {
+    INSTALLED_PKG_DIR="$(python -c 'import course_demo; print(course_demo.__path__[0])')"
+    # in CI, we must calculate the coverage for the installed package, not the src/ folder
+    COVERAGE_DIR="$INSTALLED_PKG_DIR" run-tests
+}
+
+function clean {
+    rm -rf dist build coverage.xml test-reports
+    find . \
+      -type d \
+      \( \
+        -name "*cache*" \
+        -o -name "*.dist-info" \
+        -o -name "*.egg-info" \
+        -o -name "*htmlcov" \
+      \) \
+      -not -path "*env/*" \
+      -exec rm -r {} + || true
+
+    find . \
+      -type f \
+      -name "*.pyc" \
+      -not -path "*env/*" \
+      -exec rm {} +
+}
+
+function serve-coverage-report {
+    python -m http.server --directory "$THIS_DIR/htmlcov/"
+}
+
 function help {
     echo "$0 <task> <args>"
     echo "Tasks:"
